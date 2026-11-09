@@ -4,42 +4,64 @@
 
 Identificar el entorno vulnerable entregado por TryHackMe y confirmar qué servicio PHP está expuesto dentro del laboratorio.
 
-## Contexto conocido de la sala
-
-La descripción del laboratorio plantea un servidor PHP vulnerable y una explotación realizada desde la sesión de acceso remoto del propio entorno. La referencia a `127.0.0.1:8088` debe verificarse en la instancia activa antes de documentarla como resultado.
-
-## Procedimiento
-
-> Pendiente de ejecución. Los siguientes datos se completarán con las salidas reales del laboratorio.
-
-- [ ] Iniciar la máquina de TryHackMe.
-- [ ] Establecer la conexión indicada por la plataforma.
-- [ ] Identificar interfaces y servicios accesibles desde la máquina de laboratorio.
-- [ ] Confirmar el puerto y proceso que atiende PHP.
-- [ ] Obtener la versión de PHP y el SAPI, cuando sea posible.
-- [ ] Registrar sistema operativo, servidor web y configuración relevante.
-
-## Registro de resultados
+## Entorno observado
 
 | Elemento | Resultado |
 |---|---|
-| IP de laboratorio | Pendiente |
-| Método de acceso | Pendiente |
-| Puerto del servicio | Pendiente |
-| Servidor web / SAPI | Pendiente |
-| Versión PHP | Pendiente |
-| Estado de la sesión | Pendiente |
+| Usuario de la sesión remota | `ubuntu` |
+| Contenedor | `php2shell-target` |
+| Imagen | `php:8.4.26-apache` |
+| Versión PHP comprobada | `PHP 8.4.26 (cli)` |
+| Publicación de puertos Docker | `127.0.0.1:8088 -> 80/tcp` |
+| Endpoint | `http://127.0.0.1:8088/index.php` |
+| Respuesta HTTP | `OK` |
 
-## Evidencias
+## Procedimiento ejecutado
 
-Guardar las capturas en `../evidencias/01-reconocimiento/`.
+### 1. Enumeración de contenedores
 
-No registrar credenciales, tokens de acceso ni claves privadas en el repositorio.
+```bash
+docker ps
+```
+
+Se identificó el contenedor `php2shell-target`, basado en `php:8.4.26-apache`, con el puerto 80 del contenedor publicado únicamente en la interfaz loopback del host de laboratorio, puerto 8088.
+
+### 2. Versión de PHP
+
+```bash
+docker exec php2shell-target php -v
+```
+
+Resultado observado: PHP 8.4.26 (cli), Zend Engine 4.4.26 y OPcache 8.4.26.
+
+La consulta se ejecutó mediante CLI dentro del contenedor. La imagen Apache indica el entorno web, pero esta salida por sí sola no identifica todos los detalles del SAPI que atiende cada petición.
+
+### 3. Comprobación HTTP
+
+```bash
+curl -s http://127.0.0.1:8088/index.php
+```
+
+Respuesta observada:
+
+```text
+OK
+```
+
+### 4. Archivos del material de laboratorio
+
+Se inspeccionó el directorio `~/php2shell-bypass-aslr-exp`, que contenía documentación, el script `exploit.py`, el directorio `out/`, registros y herramientas auxiliares.
 
 ## Análisis
 
-La vulnerabilidad reside en el runtime de PHP y no necesariamente en el código de la aplicación. Por ello, revisar únicamente el framework o sus dependencias no permite descartar la exposición: hay que identificar la versión y el modo de ejecución de PHP.
+El puerto 8088 no estaba expuesto como servicio público en la configuración observada: Docker lo enlazó a `127.0.0.1`. Por eso, el exploit se ejecutó desde la propia sesión remota de TryHackMe contra el loopback de esa máquina.
+
+La versión PHP 8.4.26 observada es anterior a la versión corregida 8.4.27 indicada por el aviso de seguridad de PHP. Esta comparación es coherente con el objetivo del laboratorio, aunque la confirmación definitiva de exposición depende también de la configuración y del código de la cadena vulnerable.
 
 ## Conclusión
 
-Pendiente de completar después de ejecutar el reconocimiento.
+Se identificó el contenedor objetivo, se confirmó PHP 8.4.26 y se verificó que el endpoint local respondía. El reconocimiento permitió establecer el objetivo correcto para las siguientes pruebas.
+
+## Evidencias
+
+Las capturas originales de la sesión se conservan como evidencia del reconocimiento y la ejecución. No incluir en el repositorio público información sensible de acceso.
