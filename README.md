@@ -2,7 +2,7 @@
 
 Write-up técnico de la sala **[PHP2Shell](https://tryhackme.com/room/cvephp2shell)** de TryHackMe.
 
-> **Estado:** documentación inicial. Las evidencias de ejecución y los resultados del laboratorio se añadirán únicamente después de reproducirlos.
+> **Estado:** sala completada. Resultados y evidencias incorporados a partir de la ejecución real en el laboratorio.
 
 ## Objetivos
 
@@ -32,7 +32,7 @@ Write-up técnico de la sala **[PHP2Shell](https://tryhackme.com/room/cvephp2she
 
 ## Metodología
 
-Cada fase seguirá el mismo esquema:
+Cada fase sigue el mismo esquema:
 
 1. **Objetivo:** qué se intenta comprobar.
 2. **Procedimiento:** comandos y pasos realmente ejecutados.
@@ -41,21 +41,38 @@ Cada fase seguirá el mismo esquema:
 5. **Análisis:** explicación técnica del resultado.
 6. **Impacto y recomendaciones:** consecuencias y controles defensivos.
 
-## Alcance y ética
+## Resultados del laboratorio
 
-Todas las pruebas de explotación se limitan a la máquina y los servicios proporcionados por TryHackMe. No ejecutar estas técnicas contra sistemas ajenos ni expuestos a Internet sin autorización explícita.
+- Máquina TryHackMe: Ubuntu, usuario de sesión `ubuntu`.
+- Contenedor objetivo: `php2shell-target`, imagen `php:8.4.26-apache`.
+- Versión PHP comprobada dentro del contenedor: `PHP 8.4.26 (cli)`.
+- Servicio HTTP local: `http://127.0.0.1:8088/index.php`.
+- La petición de comprobación respondió `OK`.
+- El exploit completó las etapas de fuga de heap, fuga de dirección de `libphp` y ejecución.
+- Prueba de ejecución: `uid=33(www-data) gid=33(www-data) groups=33(www-data)`.
+- La sala mostró el estado **Room completed** y los 8 objetivos completados.
 
-Las carpetas de evidencias están preparadas para incorporar capturas originales. No se incluyen flags, direcciones de objetivo ni resultados de explotación ficticios.
+**Alcance del resultado:** se confirmó ejecución de comandos con el usuario del servicio web `www-data`. Esto no equivale a obtener root ni control del host Ubuntu.
+
+La flag se verificó en la sesión, pero se omite deliberadamente de este repositorio público.
 
 ## Progreso
 
 - [x] Crear repositorio y estructura inicial.
 - [x] Documentar contexto y fuentes oficiales.
-- [ ] Reconocimiento del objetivo del laboratorio.
-- [ ] Análisis del mecanismo de PHP.
-- [ ] Reproducción de la cadena de explotación.
-- [ ] Evidencia de acceso y lectura de flag.
-- [ ] Detección y remediación.
+- [x] Reconocimiento del objetivo del laboratorio.
+- [x] Identificar contenedor, servicio y versión de PHP.
+- [x] Reproducir la cadena de explotación.
+- [x] Verificar ejecución de comandos como `www-data`.
+- [x] Completar la sala de TryHackMe.
+- [ ] Ampliar análisis técnico de cada primitiva y su relación con las CVE.
+- [ ] Completar detección y remediación con referencias contrastadas.
+
+## Alcance y ética
+
+Todas las pruebas de explotación se limitaron a la máquina y los servicios proporcionados por TryHackMe. No ejecutar estas técnicas contra sistemas ajenos ni expuestos a Internet sin autorización explícita.
+
+No se publican flags, credenciales, tokens ni secretos del laboratorio.
 
 ## Referencias principales
 
@@ -67,4 +84,4 @@ Las carpetas de evidencias están preparadas para incorporar capturas originales
 - [CISA - Critical Vulnerabilities in PHP](https://www.cisa.gov/news-events/alerts)
 
 ---
-**Nota:** write-up educativo en desarrollo. Las conclusiones específicas del laboratorio se actualizarán a medida que se obtengan evidencias.
+Write-up educativo. Los resultados específicos aquí consignados corresponden a las evidencias obtenidas en la instancia del laboratorio.
