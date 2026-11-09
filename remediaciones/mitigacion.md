@@ -11,7 +11,7 @@ La actualización es la única corrección completa para CVE-2026-109618 y CVE-2
 | PHP 8.3 | 8.3.36 |
 | PHP 8.2 | 8.2.35 |
 
-Los proveedores de Linux pueden publicar paquetes con parches retroportados sin que el número de versión upstream coincida exactamente. Verificar el boletín del proveedor y el estado del paquete instalado. PHP 8.1 y anteriores están fuera del ciclo ordinario de soporte; PHP publicó backports de código fuente para las ramas 8.1, 8.0 y 7.4, y algunos proveedores pueden ofrecer paquetes corregidos. Para 7.3 y anteriores, confirmar con el proveedor si existe un backport; si no, actualizar a una rama soportada. Un backport corrige estas CVE, pero no devuelve soporte general a una rama EOL.
+Los proveedores de Linux pueden publicar paquetes con parches retroportados sin que el número de versión upstream coincida exactamente. Verificar el boletín del proveedor y el estado del paquete instalado. PHP 8.1 y anteriores están fuera del ciclo ordinario de soporte. PHP publicó backports de código fuente para las ramas 8.1, 8.0 y 7.4, y algunos proveedores pueden ofrecer paquetes corregidos. PHP 8.2 llega al fin de vida el 31 de diciembre de 2026; para instalaciones nuevas o planes de actualización, conviene priorizar PHP 8.3 o posterior. Para 7.3 y anteriores, confirmar con el proveedor si existe un backport; si no, actualizar a una rama soportada. Un backport corrige estas CVE, pero no devuelve soporte general a una rama EOL.
 
 Tras actualizar, reiniciar Apache, PHP-FPM, php-cgi o todos los workers pertinentes. Comprobar la versión efectiva del runtime que atiende tráfico, no solo la versión de PHP CLI.
 
