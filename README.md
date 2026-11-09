@@ -2,7 +2,7 @@
 
 Write-up técnico de la sala **[PHP2Shell](https://tryhackme.com/room/cvephp2shell)** de TryHackMe.
 
-> **Estado:** sala completada. Resultados y evidencias incorporados a partir de la ejecución real en el laboratorio.
+<badge>Estado: completado</badge>
 
 ## Objetivos
 
@@ -14,32 +14,21 @@ Write-up técnico de la sala **[PHP2Shell](https://tryhackme.com/room/cvephp2she
 
 ## Vulnerabilidades
 
-| Identificador | Descripción oficial resumida | Severidad |
+| Identificador | Causa raíz | Severidad |
 |---|---|---|
-| [CVE-2026-109618](https://www.php.net/) | Ejecución remota de código por corrupción durante el manejo de errores de memoria insuficiente (OOM). | Crítica, CVSS 4.0: 9.2 |
-| [CVE-2026-109619](https://www.php.net/) | Ejecución remota de código mediante estado global obsoleto que conserva referencias a memoria liberada. | Crítica, CVSS 4.0: 9.2 |
+| [CVE-2026-109618](vulnerabilidades/CVE-2026-109618.md) | Corrupción durante el manejo de errores de memoria insuficiente (OOM). | Crítica, CVSS 4.0: 9.2 |
+| [CVE-2026-109619](vulnerabilidades/CVE-2026-109619.md) | Estado de petición obsoleto que conserva referencias a memoria liberada. | Crítica, CVSS 4.0: 9.2 |
 
-**Nota de precisión:** el aviso oficial de PHP describe ambas vulnerabilidades como vías potenciales de ejecución remota de código. En el análisis práctico se explicarán por separado las primitivas de filtración de memoria, corrupción y ejecución que aparecen en la cadena didáctica de la sala. No se debe interpretar que una CVE sea exclusivamente una vulnerabilidad de divulgación de información.
+Ambas vulnerabilidades son descritas por PHP como posibles vías de ejecución remota de código. Las fugas de memoria y las direcciones observadas durante el exploit son primitivas de la cadena de explotación, no una clasificación alternativa de las CVE.
 
 ## Estructura
 
-- `reconocimiento/`: contexto y enumeración del objetivo.
-- `vulnerabilidades/`: análisis técnico individual de cada CVE.
-- `evidencias/`: capturas y resultados obtenidos durante la práctica.
-- `explotacion/`: procedimiento reproducible dentro del laboratorio.
-- `remediaciones/`: mitigaciones, detección y recomendaciones.
-- `referencias/`: fuentes primarias y documentación complementaria.
-
-## Metodología
-
-Cada fase sigue el mismo esquema:
-
-1. **Objetivo:** qué se intenta comprobar.
-2. **Procedimiento:** comandos y pasos realmente ejecutados.
-3. **Resultado:** salida observada, sin datos inventados.
-4. **Evidencia:** captura asociada y contexto.
-5. **Análisis:** explicación técnica del resultado.
-6. **Impacto y recomendaciones:** consecuencias y controles defensivos.
+- `reconocimiento/`: enumeración del objetivo.
+- `vulnerabilidades/`: análisis técnico de cada CVE y de las primitivas.
+- `evidencias/`: directorios reservados para evidencias seleccionadas.
+- `explotacion/`: procedimiento y resultados reproducibles.
+- `remediaciones/`: mitigación, detección y respuesta.
+- `referencias/`: fuentes primarias y análisis complementarios.
 
 ## Resultados del laboratorio
 
@@ -50,38 +39,27 @@ Cada fase sigue el mismo esquema:
 - La petición de comprobación respondió `OK`.
 - El exploit completó las etapas de fuga de heap, fuga de dirección de `libphp` y ejecución.
 - Prueba de ejecución: `uid=33(www-data) gid=33(www-data) groups=33(www-data)`.
-- La sala mostró el estado **Room completed** y los 8 objetivos completados.
+- TryHackMe mostró **Room completed**, con 8 tareas completadas y 80 puntos.
 
-**Alcance del resultado:** se confirmó ejecución de comandos con el usuario del servicio web `www-data`. Esto no equivale a obtener root ni control del host Ubuntu.
+**Alcance:** se confirmó ejecución de comandos con el usuario del servicio web `www-data` dentro del contenedor. No se obtuvo evidencia de root ni de escape del contenedor. La flag fue validada en la plataforma y se omite del repositorio público.
 
-La flag se verificó en la sesión, pero se omite deliberadamente de este repositorio público.
+## Análisis técnico
 
-## Progreso
-
-- [x] Crear repositorio y estructura inicial.
-- [x] Documentar contexto y fuentes oficiales.
-- [x] Reconocimiento del objetivo del laboratorio.
-- [x] Identificar contenedor, servicio y versión de PHP.
-- [x] Reproducir la cadena de explotación.
-- [x] Verificar ejecución de comandos como `www-data`.
-- [x] Completar la sala de TryHackMe.
-- [ ] Ampliar análisis técnico de cada primitiva y su relación con las CVE.
-- [ ] Completar detección y remediación con referencias contrastadas.
+- [CVE-2026-109618: corrupción OOM](vulnerabilidades/CVE-2026-109618.md)
+- [CVE-2026-109619: estado global obsoleto](vulnerabilidades/CVE-2026-109619.md)
+- [Detección y remediación](remediaciones/mitigacion.md)
 
 ## Alcance y ética
 
-Todas las pruebas de explotación se limitaron a la máquina y los servicios proporcionados por TryHackMe. No ejecutar estas técnicas contra sistemas ajenos ni expuestos a Internet sin autorización explícita.
-
-No se publican flags, credenciales, tokens ni secretos del laboratorio.
+Todas las pruebas se limitaron a la máquina proporcionada por TryHackMe. No ejecutar estas técnicas contra sistemas ajenos ni expuestos a Internet sin autorización explícita.
 
 ## Referencias principales
 
 - [Sala PHP2Shell - TryHackMe](https://tryhackme.com/room/cvephp2shell)
-- [Avisos y releases de seguridad - PHP](https://www.php.net/)
-- [Análisis técnico - Calif Research](https://calif.io/php2shell/)
+- [Aviso oficial de PHP](https://www.php.net/archive/2026.php#2026-10-21-5)
 - [CERT-EU Security Advisory 2026-018](https://cert.europa.eu/publications/security-advisories/2026-018/)
-- [Elastic Security Labs - PHP2Shell](https://www.elastic.co/security-labs/threat-command/php2shell-php-rce-detection)
-- [CISA - Critical Vulnerabilities in PHP](https://www.cisa.gov/news-events/alerts)
+- [Elastic Security Labs - PHP2Shell detection](https://www.elastic.co/security-labs/threat-command/php2shell-php-rce-detection)
+- [NCSC - Critical security issue affecting PHP](https://www.ncsc.gov.uk/news/critical-security-issue-affecting-php)
 
 ---
-Write-up educativo. Los resultados específicos aquí consignados corresponden a las evidencias obtenidas en la instancia del laboratorio.
+Write-up educativo. Los resultados específicos corresponden a las evidencias obtenidas en la instancia del laboratorio.
