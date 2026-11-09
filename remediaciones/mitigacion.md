@@ -1,66 +1,99 @@
-# Remediación, detección y recomendaciones
+# Remediación, detección y respuesta
 
-## Prioridad 1 | Actualizar PHP
+## 1. Prioridad máxima: actualizar PHP
 
-Las versiones corregidas publicadas el 21 de octubre de 2026 son:
+La actualización es la única corrección completa para CVE-2026-109618 y CVE-2026-109619.
 
-| Rama | Versión corregida |
+| Rama | Primera versión corregida |
 |---|---:|
 | PHP 8.5 | 8.5.12 |
 | PHP 8.4 | 8.4.27 |
 | PHP 8.3 | 8.3.36 |
 | PHP 8.2 | 8.2.35 |
 
-Verificar también los paquetes mantenidos por la distribución: algunos proveedores aplican backports sin cambiar necesariamente a la versión upstream indicada.
+Los proveedores de Linux pueden publicar paquetes con parches retroportados sin que el número de versión upstream coincida exactamente. Verificar el boletín del proveedor y el estado del paquete instalado. PHP 8.1 y anteriores ya no reciben actualizaciones ordinarias del proyecto PHP; migrar a una rama soportada o confirmar con el proveedor el backport.
 
-PHP 8.1 y anteriores están fuera del soporte ordinario del proyecto PHP. Migrar a una rama soportada o confirmar con el proveedor la existencia de un parche retroportado.
+Tras actualizar, reiniciar Apache, PHP-FPM, php-cgi o todos los workers pertinentes. Comprobar la versión efectiva del runtime que atiende tráfico, no solo la versión de PHP CLI.
 
-## Medidas temporales
+## 2. Mitigaciones temporales
 
-Estas medidas reducen rutas de ataque concretas y no reemplazan el parche:
+Estas medidas reducen rutas concretas. No hacen que una instalación sin parche sea segura.
 
-### Para CVE-2026-109618
+### CVE-2026-109618: OOM
 
-- Evaluar la recomendación oficial sobre `memory_limit=-1` en configuración administrativa, considerando el riesgo de consumo de recursos.
-- Limitar `post_max_size` según las necesidades de la aplicación.
+- PHP recomienda configurar `memory_limit=-1` en un nivel administrativo que la aplicación no pueda sobrescribir, por ejemplo mediante `php_admin_value` en el pool FPM o la configuración Apache. Comprobar que ningún pool, directorio o aplicación vuelve a imponer un límite finito.
+- Establecer `post_max_size` conservador: PHP sugiere 8 MB cuando no se necesitan cargas y 32 MB cuando sí son necesarias.
 - Mantener `upload_max_filesize` por debajo de `post_max_size`.
-- Aplicar límites de tamaño del cuerpo, cantidad de campos, partes multipart y cabeceras en proxy/servidor web.
-- Usar límites de contenedor o cgroup como frontera de disponibilidad y aislar el worker afectado.
+- Limitar también en proxy/servidor el tamaño del cuerpo ya decodificado, cantidad de campos, partes multipart, cabeceras y profundidad de anidamiento. Los controles deben cubrir solicitudes aunque no exista un `Content-Length` utilizable.
+- Usar límites de contenedor/cgroup como frontera de disponibilidad, idealmente con una política que termine solo el worker afectado.
 
-**Precaución:** no sustituir estas medidas por `RLIMIT_AS` o `RLIMIT_DATA`; el aviso oficial advierte que pueden provocar fallos de asignación que alcancen la ruta vulnerable.
+**No usar `RLIMIT_AS` ni `RLIMIT_DATA` como sustitutos:** PHP advierte que pueden causar fallos de asignación que activen la ruta vulnerable. `memory_limit=-1` también tiene implicaciones de consumo de recursos, por lo que debe combinarse con aislamiento y límites externos apropiados.
 
-### Para CVE-2026-109619
+### CVE-2026-109619: estado obsoleto
 
-- Configurar `session.upload_progress.enabled=0` antes del análisis de la petición.
-- Reiniciar todos los workers después del cambio.
-- En PHP 8.5, evaluar `fatal_error_backtraces=0` como reducción de una ruta específica.
-- Corregir errores fatales y timeouts alcanzables desde peticiones remotas.
+- Configurar `session.upload_progress.enabled=0` en `php.ini`, configuración del pool FPM o configuración administrativa del servidor, antes de que PHP procese la petición.
+- Reiniciar todos los workers.
+- No confiar en `ini_set()` ni en `.user.ini` para esta mitigación temprana.
+- En PHP 8.5, `fatal_error_backtraces=0` bloquea una ruta confirmada de backtrace fatal, no todas las variantes.
+- Eliminar configuraciones inválidas o obsoletas aplicadas por petición que generen diagnósticos antes de completar la inicialización.
+- Corregir errores fatales y timeouts alcanzables remotamente, incluidos los que ocurren en callbacks, procesamiento de uploads/importaciones y limpieza.
 
-## Detección
+## 3. Detección
 
-Investigar especialmente:
+La detección más fiable no depende de reconocer una cadena exacta del exploit. La oportunidad está en el comportamiento posterior a la explotación: un proceso web que inicia intérpretes, shells, herramientas de red o modifica archivos de la aplicación.
 
-- Procesos PHP que inician shells o intérpretes inesperados.
-- Workers web que ejecutan herramientas de descarga o utilidades del sistema sin justificación.
-- Solicitudes POST multipart anómalas o repetitivas.
-- Errores fatales, OOM y reinicios inesperados de workers.
-- Actividad sospechosa en registros del proxy, servidor web, PHP y sistema operativo.
+### Telemetría a recopilar
 
-Correlacionar hora, IP de origen, URI, worker, PID y procesos hijos. La ausencia de una firma conocida no demuestra que el sistema esté limpio.
+- Árbol de procesos y proceso padre: Apache, PHP-FPM, php-cgi o equivalente.
+- Ejecución de shells e intérpretes no habituales como `sh`, `bash`, `dash`, `python`, `perl`, `ruby` o `node`.
+- Procesos de descarga o transferencia como `curl` y `wget` iniciados por workers web.
+- Escritura o modificación de archivos PHP en directorios web, temporales o rutas de upload.
+- Conexiones salientes inesperadas desde procesos web.
+- Errores de PHP, OOM, fallos de segmentación, reinicios de workers y errores HTTP 5xx correlacionados temporalmente con peticiones POST.
 
-## Lista de verificación
+### Indicadores de investigación
 
-- [ ] Inventariar PHP y productos que lo integran.
-- [ ] Identificar SAPI y versión efectiva en cada servicio.
-- [ ] Aplicar actualización o parche del proveedor.
-- [ ] Reiniciar workers y servicios afectados.
-- [ ] Verificar versión y configuración posterior.
-- [ ] Revisar registros y procesos anómalos.
-- [ ] Documentar excepciones y sistemas aún expuestos.
+1. Correlacionar access log y error log por timestamp, IP origen, URI y código HTTP.
+2. Revisar si el worker afectado terminó por segmentation fault o fue reiniciado.
+3. Inspeccionar el árbol de procesos y los comandos ejecutados por el usuario del servicio web.
+4. Buscar archivos nuevos o modificados en el webroot, directorios de upload y temporales.
+5. Revisar conexiones salientes, tareas programadas, servicios y mecanismos de persistencia.
+6. Si hay indicios de ejecución, tratar el sistema como comprometido: preservar logs y evidencia, aislarlo, rotar secretos accesibles desde el proceso y reconstruir desde una imagen confiable tras erradicar la persistencia.
 
-## Fuentes
+Un fallo de segmentación puede ser un indicio de intento fallido o de explotación, pero no demuestra por sí solo compromiso. La ausencia de esos eventos tampoco descarta una explotación exitosa.
 
-- [PHP Security Advisory](https://www.php.net/)
-- [CISA](https://www.cisa.gov/news-events/alerts)
-- [CERT-EU](https://cert.europa.eu/publications/security-advisories/2026-018/)
-- [Elastic Security Labs](https://www.elastic.co/security-labs/threat-command/php2shell-php-rce-detection)
+## 4. Ejemplos de reglas de detección
+
+Las siguientes son ideas de lógica de detección para un EDR/SIEM, no reglas listas para producción. Ajustar nombres de procesos, rutas y falsos positivos al entorno.
+
+| Regla | Condición de alerta | Severidad sugerida |
+|---|---|---|
+| Web worker spawns shell | Proceso PHP/Apache crea `sh`, `bash`, `dash` o equivalente. | Alta |
+| Web worker launches network tool | Proceso web crea `curl`, `wget`, `nc` o `socat`. | Alta |
+| Web root modification | Proceso web crea o modifica scripts ejecutables en webroot o upload. | Alta |
+| PHP worker crash burst | Varios workers PHP/Apache terminan con señal de segmentation fault en una ventana corta. | Media/Alta |
+| Unexpected egress | Worker web inicia conexiones a destinos externos no habituales. | Alta |
+
+No bloquear automáticamente todo proceso hijo: algunas aplicaciones legítimas generan documentos, imágenes o tareas auxiliares. Baseline, allowlist y correlación con usuario, ruta y comando.
+
+## 5. Comprobación posterior al parche
+
+- [ ] Inventariar todas las instalaciones PHP, incluidas las incluidas en appliances, CMS y productos de terceros.
+- [ ] Identificar versión efectiva, SAPI y proveedor del paquete.
+- [ ] Aplicar el parche upstream o el backport oficial.
+- [ ] Reiniciar todos los workers y servicios.
+- [ ] Confirmar que los procesos activos usan la versión corregida.
+- [ ] Verificar la configuración temporal y retirar excepciones innecesarias después del parche.
+- [ ] Revisar logs, procesos, archivos modificados y conexiones salientes desde el periodo de exposición.
+- [ ] Rotar credenciales y secretos si el proceso web pudo acceder a ellos.
+- [ ] Registrar sistemas exceptuados y fecha límite para su actualización.
+
+## Referencias
+
+- [PHP - Security advisory, 21 October 2026](https://www.php.net/archive/2026.php#2026-10-21-5)
+- [PHP - Informational advisory: Session upload progress](https://www.php.net/archive/2026.php#2026-10-23-3)
+- [CERT-EU - Security Advisory 2026-018](https://cert.europa.eu/publications/security-advisories/2026-018/)
+- [NCSC UK - Critical security issue affecting PHP](https://www.ncsc.gov.uk/news/critical-security-issue-affecting-php)
+- [Elastic Security Labs - PHP2Shell detection coverage](https://www.elastic.co/security-labs/threat-command/php2shell-php-rce-detection)
+- [Red Hat - RHSB-2026-013](https://access.redhat.com/security/vulnerabilities/RHSB-2026-013)
+- [AWS Security Blog - PHP2Shell mitigations](https://aws.amazon.com/blogs/security/using-aws-waf-to-apply-mitigations-for-php2shell-rce-vulnerabilities-cve-2026-109618-and-cve-2026-109619/)
