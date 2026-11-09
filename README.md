@@ -2,7 +2,7 @@
 
 Write-up técnico de la sala **[PHP2Shell](https://tryhackme.com/room/cvephp2shell)** de TryHackMe.
 
-<badge>Estado: completado</badge>
+**Estado:** completado
 
 ## Objetivos
 
@@ -25,7 +25,7 @@ Ambas vulnerabilidades son descritas por PHP como posibles vías de ejecución r
 
 - `reconocimiento/`: enumeración del objetivo.
 - `vulnerabilidades/`: análisis técnico de cada CVE y de las primitivas.
-- `evidencias/`: directorios reservados para evidencias seleccionadas.
+- `evidencias/imagenes/`: capturas del laboratorio.
 - `explotacion/`: procedimiento y resultados reproducibles.
 - `remediaciones/`: mitigación, detección y respuesta.
 - `referencias/`: fuentes primarias y análisis complementarios.
@@ -41,7 +41,7 @@ Ambas vulnerabilidades son descritas por PHP como posibles vías de ejecución r
 - Prueba de ejecución: `uid=33(www-data) gid=33(www-data) groups=33(www-data)`.
 - TryHackMe mostró **Room completed**, con 8 tareas completadas y 80 puntos.
 
-**Alcance:** se confirmó ejecución de comandos con el usuario del servicio web `www-data` dentro del contenedor. No se obtuvo evidencia de root ni de escape del contenedor. La flag fue validada en la plataforma y se omite del repositorio público.
+**Alcance:** se confirmó ejecución de comandos con el usuario del servicio web `www-data` dentro del contenedor. No se obtuvo evidencia de root ni de escape del contenedor. La flag fue validada en la plataforma y se omite del repositorio público. Las capturas se almacenan únicamente en `evidencias/imagenes/`; revisa que ninguna imagen exponga la flag, cookies, credenciales o tokens antes de mantenerla pública.
 
 ## Análisis técnico
 
