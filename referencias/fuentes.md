@@ -18,6 +18,7 @@
 
 9. [CERT-EU - Security Advisory 2026-018](https://cert.europa.eu/publications/security-advisories/2026-018/) - recomendaciones de seguridad.
 10. [NCSC UK - Critical security issue affecting PHP](https://www.ncsc.gov.uk/news/critical-security-issue-affecting-php) - inventario, priorización, actualización y análisis de compromiso.
+11. [CISA - Critical Vulnerabilities in PHP Require Immediate Patching](https://content.govdelivery.com/accounts/USDHSCISA/bulletins/42ff5ac) - recomendación de actualización urgente y vigilancia de procesos web sospechosos.
 
 ## Criterios de uso
 
