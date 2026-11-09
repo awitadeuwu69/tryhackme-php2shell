@@ -11,7 +11,7 @@ La actualización es la única corrección completa para CVE-2026-109618 y CVE-2
 | PHP 8.3 | 8.3.36 |
 | PHP 8.2 | 8.2.35 |
 
-Los proveedores de Linux pueden publicar paquetes con parches retroportados sin que el número de versión upstream coincida exactamente. Verificar el boletín del proveedor y el estado del paquete instalado. PHP 8.1 y anteriores ya no reciben actualizaciones ordinarias del proyecto PHP; migrar a una rama soportada o confirmar con el proveedor el backport.
+Los proveedores de Linux pueden publicar paquetes con parches retroportados sin que el número de versión upstream coincida exactamente. Verificar el boletín del proveedor y el estado del paquete instalado. PHP 8.1 y anteriores están fuera del ciclo ordinario de soporte; PHP publicó backports de código fuente para las ramas 8.1, 8.0 y 7.4, y algunos proveedores pueden ofrecer paquetes corregidos. Para 7.3 y anteriores, confirmar con el proveedor si existe un backport; si no, actualizar a una rama soportada. Un backport corrige estas CVE, pero no devuelve soporte general a una rama EOL.
 
 Tras actualizar, reiniciar Apache, PHP-FPM, php-cgi o todos los workers pertinentes. Comprobar la versión efectiva del runtime que atiende tráfico, no solo la versión de PHP CLI.
 
@@ -37,6 +37,7 @@ Estas medidas reducen rutas concretas. No hacen que una instalación sin parche 
 - En PHP 8.5, `fatal_error_backtraces=0` bloquea una ruta confirmada de backtrace fatal, no todas las variantes.
 - Eliminar configuraciones inválidas o obsoletas aplicadas por petición que generen diagnósticos antes de completar la inicialización.
 - Corregir errores fatales y timeouts alcanzables remotamente, incluidos los que ocurren en callbacks, procesamiento de uploads/importaciones y limpieza.
+- Si la arquitectura y el rendimiento lo permiten, considerar `pm.max_requests=1` en PHP-FPM para reciclar el worker tras cada petición. Es una reducción parcial del riesgo, no una corrección general ni sustituto del parche.
 
 ## 3. Detección
 
@@ -96,4 +97,5 @@ No bloquear automáticamente todo proceso hijo: algunas aplicaciones legítimas 
 - [NCSC UK - Critical security issue affecting PHP](https://www.ncsc.gov.uk/news/critical-security-issue-affecting-php)
 - [Elastic Security Labs - PHP2Shell detection coverage](https://www.elastic.co/security-labs/threat-command/php2shell-php-rce-detection)
 - [Red Hat - RHSB-2026-013](https://access.redhat.com/security/vulnerabilities/RHSB-2026-013)
-- [AWS Security Blog - PHP2Shell mitigations](https://aws.amazon.com/blogs/security/using-aws-waf-to-apply-mitigations-for-php2shell-rce-vulnerabilities-cve-2026-109618-and-cve-2026-109619/)
+- [AWS Security Blog - PHP2Shell mitigations and EOL backports](https://aws.amazon.com/blogs/security/using-aws-waf-to-apply-mitigations-for-php2shell-rce-vulnerabilities-cve-2026-109618-and-cve-2026-109619/)
+- [CISA - Critical Vulnerabilities in PHP Require Immediate Patching](https://content.govdelivery.com/accounts/USDHSCISA/bulletins/42ff5ac)
